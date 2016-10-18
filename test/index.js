@@ -21,7 +21,7 @@ test('should add yield', (t) => {
   `)
 
   var out = `function* main() {
-  yield move();
+  yield* move();
 }
 
 function* move() {
@@ -49,12 +49,12 @@ test('should add yield at depth 2', (t) => {
   `)
 
   var out = `function* main() {
-  yield square();
+  yield* square();
 }
 
 function* square() {
-  yield move();
-  yield move();
+  yield* move();
+  yield* move();
 }
 
 function* move() {
@@ -78,7 +78,7 @@ test('should add yield for imported', (t) => {
 var move = require('move');
 
 function* main() {
-  yield move();
+  yield* move();
 }`
 
   t.equal(code, out)

@@ -15,22 +15,23 @@ module.exports = autoYield
  * auto-yield
  */
 
-function autoYield(code, generatorNames, secondOrderGens) {
+function autoYield (code, generatorNames, secondOrderGens) {
   generatorNames = generatorNames || []
   secondOrderGens = secondOrderGens || []
 
-  var it = {CallExpression, VariableDeclarator}
+  var it = { CallExpression: CallExpression, VariableDeclarator: VariableDeclarator }
   var result = babel.transform(code, {
-    plugins: [{visitor: it}]
+    plugins: [{ visitor: it }]
   })
   return result.code
 
-
   function CallExpression (path) {
-
     var parent = path.parentPath
     if (parent.node.type !== 'YieldExpression' && isGenerator(path.node.callee, path.scope)) {
-      path.replaceWith(babel.types.yieldExpression(path.node))
+      const inScope = path.scope.bindings[path.node.callee.name]
+      const inFile = path.hub.file.scope.bindings[path.node.callee.name]
+      const deleg = inScope || inFile ? true : false
+      path.replaceWith(babel.types.yieldExpression(path.node, deleg))
       while (parent && parent.node.type !== 'FunctionExpression' && parent.node.type !== 'FunctionDeclaration') {
         parent = parent.parentPath
       }
@@ -42,7 +43,9 @@ function autoYield(code, generatorNames, secondOrderGens) {
   }
 
   function VariableDeclarator (path) {
-    if (path.node.init.callee && secondOrderGens.indexOf(path.node.init.callee.name) >= 0) {
+    var inScope = path.scope.bindings[path.node.init.callee.name] ? true : false
+    var inSecondGens = secondOrderGens.indexOf(path.node.init.callee.name) >= 0
+    if (path.node.init.callee && (inScope || inSecondGens)) {
       if (generatorNames.indexOf(path.node.id.name) === -1) {
         generatorNames.push(path.node.id.name)
       }
@@ -57,10 +60,10 @@ function autoYield(code, generatorNames, secondOrderGens) {
     }
   }
 
-  function isFunctionGenerator (name, scope) {
+  function isFunctionGenerator(name, scope) {
     scope = findBindingScope(name, scope)
     if (scope) {
-      return scope.bindings[name].path.node.generator || (!scope.parent && generatorNames.indexOf(name) >= 0)
+      return scope.bindings[name].path.node.generator || !scope.parent && generatorNames.indexOf(name) >= 0
     } else {
       return generatorNames.indexOf(name) >= 0
     }
@@ -78,6 +81,4 @@ function autoYield(code, generatorNames, secondOrderGens) {
     }
     return scope
   }
-
-
 }
