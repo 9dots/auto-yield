@@ -2,7 +2,7 @@
   "name": "auto-yield",
   "description": "Automatically add yields and generators.",
   "repository": "git://github.com/joshrtay/auto-yield.git",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
