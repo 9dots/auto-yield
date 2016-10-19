@@ -2,13 +2,13 @@
   "name": "auto-yield-delegate",
   "description": "Automatically add yields and generators.",
   "repository": "git://github.com/joshrtay/auto-yield.git",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "make build",
     "postpublish": "make clean",
-    "postversion": "git push && git push --tags && npm publish --access=public"
+    "postversion": "git push && git push --tags && yarn publish --access=public"
   },
   "dependencies": {
     "babel-core": "^6.7.4",
