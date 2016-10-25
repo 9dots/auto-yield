@@ -43,11 +43,13 @@ function autoYield (code, generatorNames, secondOrderGens) {
   }
 
   function VariableDeclarator (path) {
-    var inScope = path.scope.bindings[path.node.init.callee.name] ? true : false
-    var inSecondGens = secondOrderGens.indexOf(path.node.init.callee.name) >= 0
-    if (path.node.init.callee && (inScope || inSecondGens)) {
-      if (generatorNames.indexOf(path.node.id.name) === -1) {
-        generatorNames.push(path.node.id.name)
+    if (path.node.init.callee) {
+      var inScope = path.scope.bindings[path.node.init.callee.name] ? true : false
+      var inSecondGens = secondOrderGens.indexOf(path.node.init.callee.name) >= 0
+      if (inScope || inSecondGens) {
+        if (generatorNames.indexOf(path.node.id.name) === -1) {
+          generatorNames.push(path.node.id.name)
+        }
       }
     }
   }
