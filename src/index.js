@@ -4,12 +4,19 @@
 
 var babel = require('babel-core')
 var camelCase = require('camel-case')
+var t = babel.types
 
 /**
  * Expose auto yield
  */
 
 module.exports = autoYield
+function addLineNumber (path) {
+  return t.callExpression(
+    t.identifier(path.node.callee.name),
+    [...path.node.arguments, t.numericLiteral(path.node.callee.loc.start.line)]
+  )
+}
 
 /**
  * auto-yield
@@ -27,11 +34,14 @@ function autoYield (code, generatorNames, secondOrderGens) {
 
   function CallExpression (path) {
     var parent = path.parentPath
-    if (parent.node.type !== 'YieldExpression' && isGenerator(path.node.callee, path.scope)) {
+    if (parent.node.type !== 'YieldExpression') {
       const inScope = path.scope.bindings[path.node.callee.name]
+        && path.scope.bindings[path.node.callee.name].type
+        && path.scope.bidnings[path.node.callee.name].type !== 'param'
       const inFile = path.hub.file.scope.bindings[path.node.callee.name]
+      // console.log(path.scope.bindings[path.node.callee.name].type, path.node.callee.name)
       const deleg = inScope || inFile ? true : false
-      path.replaceWith(babel.types.yieldExpression(path.node, deleg))
+      path.replaceWith(babel.types.yieldExpression(addLineNumber(path), deleg))
       while (parent && parent.node.type !== 'FunctionExpression' && parent.node.type !== 'FunctionDeclaration') {
         parent = parent.parentPath
       }
