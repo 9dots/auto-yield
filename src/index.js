@@ -14,7 +14,7 @@ module.exports = autoYield
 function addLineNumber (path) {
   return t.callExpression(
     t.identifier(path.node.callee.name),
-    [...path.node.arguments, t.numericLiteral(path.node.callee.loc.start.line)]
+    [t.numericLiteral(path.node.callee.loc.start.line), ...path.node.arguments]
   )
 }
 
@@ -34,7 +34,7 @@ function autoYield (code, generatorNames, secondOrderGens) {
 
   function CallExpression (path) {
     var parent = path.parentPath
-    if (parent.node.type !== 'YieldExpression') {
+    if (parent.node.type !== 'YieldExpression' && path.node.callee.type !== 'MemberExpression') {
       const inScope = path.scope.bindings[path.node.callee.name]
         && path.scope.bindings[path.node.callee.name].type
         && path.scope.bidnings[path.node.callee.name].type !== 'param'
