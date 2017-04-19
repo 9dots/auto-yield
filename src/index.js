@@ -26,7 +26,12 @@ function autoYield (code, generatorNames, secondOrderGens) {
   generatorNames = generatorNames || []
   secondOrderGens = secondOrderGens || []
 
-  var it = { CallExpression: CallExpression, VariableDeclarator: VariableDeclarator }
+  var it = {
+    CallExpression: CallExpression,
+    VariableDeclarator: VariableDeclarator,
+    FunctionDeclaration: FunctionDeclaration,
+    FunctionExpression: FunctionDeclaration
+  }
   var result = babel.transform(code, {
     plugins: [{ visitor: it }]
   })
@@ -34,21 +39,22 @@ function autoYield (code, generatorNames, secondOrderGens) {
 
   function CallExpression (path) {
     var parent = path.parentPath
-    if (parent.node.type !== 'YieldExpression' && path.node.callee.type !== 'MemberExpression') {
-      const inScope = path.scope.bindings[path.node.callee.name]
-        && path.scope.bindings[path.node.callee.name].type
-        && path.scope.bidnings[path.node.callee.name].type !== 'param'
-      const inFile = path.hub.file.scope.bindings[path.node.callee.name]
-      // console.log(path.scope.bindings[path.node.callee.name].type, path.node.callee.name)
-      const deleg = inScope || inFile ? true : false
-      path.replaceWith(babel.types.yieldExpression(deleg ? path.node : addLineNumber(path), deleg))
-      while (parent && parent.node.type !== 'FunctionExpression' && parent.node.type !== 'FunctionDeclaration') {
-        parent = parent.parentPath
+    if (parent.node.type !== 'YieldExpression') {
+      if (path.node.callee.type !== 'MemberExpression') {
+        const inScope = path.scope.bindings[path.node.callee.name]
+          && path.scope.bindings[path.node.callee.name].type
+          && path.scope.bindings[path.node.callee.name].type !== 'param'
+        const inFile = path.hub.file.scope.bindings[path.node.callee.name]
+        // console.log(path.scope.bindings[path.node.callee.name].type, path.node.callee.name)
+        const deleg = inScope || inFile ? true : false
+        path.replaceWith(babel.types.yieldExpression(deleg ? path.node : addLineNumber(path), deleg))
       }
-      if (parent && !parent.node.generator) {
-        parent.replaceWith(babel.types[camelCase(parent.node.type)](parent.node.id, parent.node.params, parent.node.body, true))
-        parent.parentPath.traverse(it)
-      }
+    }
+  }
+
+  function FunctionDeclaration (path) {
+    if (!path.node.generator) {
+      path.replaceWith(babel.types[camelCase(path.node.type)](path.node.id, path.node.params, path.node.body, true))
     }
   }
 
