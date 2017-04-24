@@ -4,6 +4,7 @@
 
 var babel = require('babel-core')
 var camelCase = require('camel-case')
+const arrowFunctions = require('babel-plugin-transform-es2015-arrow-functions')
 var t = babel.types
 
 /**
@@ -26,15 +27,23 @@ function autoYield (code, generatorNames, secondOrderGens) {
   generatorNames = generatorNames || []
   secondOrderGens = secondOrderGens || []
 
-  var it = {
-    CallExpression: CallExpression,
-    VariableDeclarator: VariableDeclarator,
-    FunctionDeclaration: FunctionDeclaration,
+
+  var withoutArrows = babel.transform(code, {
+    retainLines: true,
+    plugins: [ arrowFunctions ]
+  })
+
+  const visitor = {
+    CallExpression,
+    VariableDeclarator,
+    FunctionDeclaration,
     FunctionExpression: FunctionDeclaration
   }
-  var result = babel.transform(code, {
-    plugins: [{ visitor: it }]
+
+  const result = babel.transform(withoutArrows.code, {
+    plugins: [{ visitor }]
   })
+
   return result.code
 
   function CallExpression (path) {
@@ -59,14 +68,11 @@ function autoYield (code, generatorNames, secondOrderGens) {
   }
 
   function VariableDeclarator (path) {
-    if (path.node.init.callee) {
-      var inScope = path.scope.bindings[path.node.init.callee.name] ? true : false
-      var inSecondGens = secondOrderGens.indexOf(path.node.init.callee.name) >= 0
-      if (inScope || inSecondGens) {
-        if (generatorNames.indexOf(path.node.id.name) === -1) {
-          generatorNames.push(path.node.id.name)
-        }
-      }
+    if (path.node.init.type === 'FunctionExpression' && !path.node.init.generator) {
+      path.replaceWith(babel.types.variableDeclarator(
+        path.node.id,
+        babel.types[camelCase(path.node.init.type)](path.node.init.id, path.node.init.params, path.node.init.body, true)
+      ))
     }
   }
 
