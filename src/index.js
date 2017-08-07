@@ -19,9 +19,9 @@ function addLineNumber (path) {
   )
 }
 
-function addCallFnWrapper(path) {
+function addCallFnWrapper(path, userFnName) {
   return t.callExpression(
-    t.identifier('callFn'),
+    t.identifier(userFnName),
     [
       t.numericLiteral(path.node.callee.loc.start.line),
       t.identifier(path.node.callee.name),
@@ -34,7 +34,7 @@ function addCallFnWrapper(path) {
  * auto-yield
  */
 
-function autoYield (code, generatorNames, secondOrderGens) {
+function autoYield (code, generatorNames, secondOrderGens, userFnName) {
   generatorNames = generatorNames || []
   secondOrderGens = secondOrderGens || []
 
@@ -67,7 +67,7 @@ function autoYield (code, generatorNames, secondOrderGens) {
         const inFile = path.hub.file.scope.bindings[path.node.callee.name]
         // console.log(path.scope.bindings[path.node.callee.name].type, path.node.callee.name)
         const deleg = inScope || inFile ? true : false
-        path.replaceWith(babel.types.yieldExpression(deleg ? addCallFnWrapper(path) : addLineNumber(path), deleg))
+        path.replaceWith(babel.types.yieldExpression(deleg ? addCallFnWrapper(path, userFnName) : addLineNumber(path), deleg))
       }
     }
   }
