@@ -19,6 +19,17 @@ function addLineNumber (path) {
   )
 }
 
+function addCallFnWrapper(path) {
+  return t.callExpression(
+    t.identifier('callFn'),
+    [
+      t.numericLiteral(path.node.callee.loc.start.line),
+      t.identifier(path.node.callee.name),
+      ...path.node.arguments
+    ]
+  )
+}
+
 /**
  * auto-yield
  */
@@ -56,7 +67,7 @@ function autoYield (code, generatorNames, secondOrderGens) {
         const inFile = path.hub.file.scope.bindings[path.node.callee.name]
         // console.log(path.scope.bindings[path.node.callee.name].type, path.node.callee.name)
         const deleg = inScope || inFile ? true : false
-        path.replaceWith(babel.types.yieldExpression(deleg ? path.node : addLineNumber(path), deleg))
+        path.replaceWith(babel.types.yieldExpression(deleg ? addCallFnWrapper(path) : addLineNumber(path), deleg))
       }
     }
   }
