@@ -129,6 +129,66 @@ import autoYield from '../src'
 //   t.end()
 // })
 
+test('should add yield when userFnNameOrGetter is a string', (t) => {
+  var code = autoYield(`forward()
+    forward()
+    turnAround()
+
+    function turnAround() {
+      turnRight()
+      turnRight()
+    }
+  `, null, null, 'callFn')
+
+  var out = `yield forward(1);
+yield forward(2);
+yield* callFn(3, turnAround);
+
+function* turnAround() {
+  yield turnRight(6);
+  yield turnRight(7);
+}`
+
+  t.equal(code, out)
+  t.end()
+})
+
+test('should add yield when userFnNameOrGetter is a function', (t) => {
+  var code = autoYield(`forward()
+    forward()
+    turnAround()
+    moveTurn()
+
+    function moveTurn() {
+      forward()
+      turnRight()
+    }
+
+    function turnAround() {
+      turnRight()
+      turnRight()
+    }
+  `, null, null, name => ['turnAround'].includes(name) ? 'callSpecialFn': 'callFn')
+
+  var out = `yield forward(1);
+yield forward(2);
+yield* callSpecialFn(3, turnAround);
+yield* callFn(4, moveTurn);
+
+function* moveTurn() {
+  yield forward(7);
+  yield turnRight(8);
+}
+
+function* turnAround() {
+  yield turnRight(12);
+  yield turnRight(13);
+}`
+
+  t.equal(code, out)
+  t.end()
+})
+
 // TODO: add support
 // test('should add yield for generator methods', (t) => {
 //   var code = autoYield(`
