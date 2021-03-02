@@ -19,8 +19,8 @@ function addLineNumber(path) {
   ]);
 }
 
-function addCallFnWrapper(path, userFnName) {
-  const wrapper = typeof userFnName === 'function' ? userFnName(path.node.callee.name) : userFnName
+function addCallFnWrapper(path, userFnNameOrGetter) {
+  const wrapper = typeof userFnNameOrGetter === 'function' ? userFnNameOrGetter(path.node.callee.name) : userFnNameOrGetter
   return t.callExpression(t.identifier(wrapper), [
     t.numericLiteral(path.node.callee.loc.start.line),
     t.identifier(path.node.callee.name),
@@ -32,7 +32,7 @@ function addCallFnWrapper(path, userFnName) {
  * auto-yield
  */
 
-function autoYield(code, generatorNames, secondOrderGens, userFnName = "") {
+function autoYield(code, generatorNames, secondOrderGens, userFnNameOrGetter = "") {
   generatorNames = generatorNames || [];
   secondOrderGens = secondOrderGens || [];
 
@@ -66,7 +66,7 @@ function autoYield(code, generatorNames, secondOrderGens, userFnName = "") {
         const deleg = inScope || inFile ? true : false;
         path.replaceWith(
           t.yieldExpression(
-            deleg ? addCallFnWrapper(path, userFnName) : addLineNumber(path),
+            deleg ? addCallFnWrapper(path, userFnNameOrGetter) : addLineNumber(path),
             deleg
           )
         );
