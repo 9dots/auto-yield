@@ -20,7 +20,8 @@ function addLineNumber(path) {
 }
 
 function addCallFnWrapper(path, userFnName) {
-  return t.callExpression(t.identifier(userFnName), [
+  const wrapper = typeof userFnName === 'function' ? userFnName(path.node.callee.name) : userFnName
+  return t.callExpression(t.identifier(wrapper), [
     t.numericLiteral(path.node.callee.loc.start.line),
     t.identifier(path.node.callee.name),
     ...path.node.arguments
