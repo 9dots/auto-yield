@@ -39,11 +39,12 @@ yield 'moving';
 
 ## API
 
-### autoYield(code, globalGens, secondOrderGens)
+### autoYield(code, globalGens, secondOrderGens, userFnName)
 
 - `code` - code to transform
 - `globalGens` - array of global names or object names that are generators or have generators
 - `secondOrderGens` - array of functions that return generators
+- `userFnName` - string of call function wrapper or function determining call function wrapper string
 
 **Returns:** transformed code
 
