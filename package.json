@@ -2,7 +2,7 @@
   "name": "auto-yield-delegate",
   "description": "Automatically add yields and generators.",
   "repository": "github:9dots/auto-yield",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "license": "MIT",
   "main": "lib/index.js",
   "scripts": {
